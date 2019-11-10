@@ -1,0 +1,7 @@
+title: Welcome to lektor-jupyter-preprocess demo!
+---
+body:
+
+This is a basic demo page to show how [`lektor-jupyter-preprocess`](https://github.com/obestwalter/lektor-jupyter-preprocess) works.
+
+[see notebook powered page](/notebook-powered-page/)

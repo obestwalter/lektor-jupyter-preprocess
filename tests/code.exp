@@ -1,0 +1,125 @@
+title: bla
+---
+cdate: 2019-11-9
+----
+content:
+
+```python
+# %load a-module.py
+import sys
+
+
+def foo():
+    print(sys)
+
+```
+
+```python
+2 * 2 * 2 * 2  # single line code with single line output
+
+```
+```text
+[result]
+16
+```
+### Pack and unpack arguments
+
+
+```python
+def foo(*args, **kwargs):
+    bar(*args, **kwargs)
+
+
+def bar(a, b, c=None, d=None):
+    print(a, b, c, d)
+
+
+foo(*[1, 2], **dict(c=3, d=4))
+
+```
+```text
+[stdout]
+1 2 3 4
+
+```
+
+```python
+for seq in ["egg", [1, 2, 3], (1, 2, 3), {1, 2, 3}, {1: "a", 2: "b", 3: "c"}]:
+    print(f"{seq} is {type(seq)}")
+    a, b, c = seq
+    print(f"a, b, c  -> {a} {b} {c}")
+    *a, b = seq
+    print(f"*a, b = seq -> {a} {b}")
+    a, *b = seq
+    print(f"a, *b = seq -> {a} {b}\n")
+
+```
+```text
+[stdout]
+egg is <class 'str'>
+a, b, c  -> e g g
+*a, b = seq -> ['e', 'g'] g
+a, *b = seq -> e ['g', 'g']
+
+[1, 2, 3] is <class 'list'>
+a, b, c  -> 1 2 3
+*a, b = seq -> [1, 2] 3
+a, *b = seq -> 1 [2, 3]
+
+(1, 2, 3) is <class 'tuple'>
+a, b, c  -> 1 2 3
+*a, b = seq -> [1, 2] 3
+a, *b = seq -> 1 [2, 3]
+
+{1, 2, 3} is <class 'set'>
+a, b, c  -> 1 2 3
+*a, b = seq -> [1, 2] 3
+a, *b = seq -> 1 [2, 3]
+
+{1: 'a', 2: 'b', 3: 'c'} is <class 'dict'>
+a, b, c  -> 1 2 3
+*a, b = seq -> [1, 2] 3
+a, *b = seq -> 1 [2, 3]
+
+
+```
+
+```python
+a = {"a": 1, "foo": {"a": 1}}
+b = {"a": 1, "foo": {"b": 2, "c": 3}}
+# This will not merge the nested dict foo, but overwrite it
+
+```
+
+```python
+raise SyntaxError("NO OTHER OUTPUT!")
+
+```
+```text
+[SyntaxError]
+NO OTHER OUTPUT! (<string>)
+```
+
+```python
+print("Execution tolerates errors")
+raise ValueError("BOOM WITH OTHER OUTPUTS!")
+
+```
+```text
+[stdout]
+Execution tolerates errors
+
+```
+```text
+[ValueError]
+BOOM WITH OTHER OUTPUTS!
+```
+
+```python
+{**a, **b}
+
+```
+```text
+[result]
+{'a': 1, 'foo': {'b': 2, 'c': 3}}
+```

@@ -1,0 +1,43 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="{{ '/static/style.css'|url }}">
+<title>{% block title %}Welcome{% endblock %} — jupyter-preprocess-demo</title>
+<body>
+  <header>
+    <h1>minimal-my-jupyter</h1>
+    <nav>
+      <ul class="nav navbar-nav">
+        <li{% if this.path == '/' %} class="active"{% endif
+          %}><a href="{{ '/'|url }}">Welcome</a></li>
+        {% for href, title in [
+          ['/notebook-powered-page', 'Notebook powered'],
+          ['/normal-page', 'Normal'],
+        ] %}
+          <li{% if this.is_child_of(href) %} class="active"{% endif
+            %}><a href="{{ href|url }}">{{ title }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </header>
+  <div class="page">
+    {% block body %}{% endblock %}
+  </div>
+  <footer>
+    {#  accessing information for lektor-jupyter-preprocess plugin #}
+    {% if this.path in JUPYTER_PREPROCESS.paths %}
+        <div>
+        Page generated from a Jupyter notebook &mdash;
+        {% if JUPYTER_PREPROCESS.source_url is defined %}
+            <a href="{{ JUPYTER_PREPROCESS.source_url }}/{{ this.path }}">
+                view sources
+            </a>
+        {% else %}
+            <a href="{{ this.path }}">
+                download notebook
+            </a>
+        {% endif %}
+        </div>
+        <br>
+    {% endif %}
+  </footer>
+</body>

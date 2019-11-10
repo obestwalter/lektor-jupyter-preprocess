@@ -1,0 +1,95 @@
+title: About this Website
+---
+body:
+
+This is a pat of a cell, it will stay unchanged.
+
+# This page was rendered from a notebook. 
+
+It only shows the basic functionality of executing and rendering a notebook into 
+a contents.lr - no syntax highlighting or anything is provided as this is taken care of
+by other plugins. 
+
+## This is a header in a markdown cell
+
+This is a paragraph in a markdown cell. It will be rendered and provides all kinds of fancy things.
+
+
+```python
+# this is a code cell containing Python code - it will be executed
+# and the output will be shown in the notebook
+print("I am the output of a code cell.")
+2 + 5  # The evaluated result on the last line, will also be shown
+
+```
+```text
+[stdout]
+I am the output of a code cell.
+
+```
+```text
+[result]
+7
+```
+
+```python
+from pathlib import Path
+
+# this will throw an exception - next cells will still be executed.
+Path("idontexist").read_text()
+
+```
+```text
+[FileNotFoundError]
+[Errno 2] No such file or directory: 'idontexist'
+```
+The next cell is populated via the IPython `%load` magic and also executed.
+
+
+```python
+# %load a-module.py
+import sys
+
+
+def foo():
+    print(f"running python {sys.version}")
+
+
+foo()
+
+```
+```text
+[stdout]
+running python 3.7.4 (default, Oct  4 2019, 06:57:26) 
+[GCC 9.2.0]
+
+```
+The next cell contains this additional metadata:
+
+```json
+{
+  "lektor-preprocess": {
+  	"prevent-execution": true
+  }
+}
+```
+
+This will cause the next cell to load only and not be executed.
+
+
+```python
+# %load dont-execute-me.py
+# This should only be loaded not executed
+
+raise EnvironmentError("This should never be executed")
+
+```
+
+End of the notebook.
+
+
+```python
+This cell is a code cell but wouldn't even parse.
+
+It contains also metadata to not be executed
+```
