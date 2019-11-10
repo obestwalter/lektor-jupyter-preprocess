@@ -52,8 +52,7 @@ class JupyterPreprocessPlugin(Plugin):
         self.env.add_build_program(Attachment, NotebookAwareAttachmentBuildProgram)
 
     def on_before_build_all(self, **_):
-        global _already_built
-        _already_built = set()
+        _already_built.clear()
         
     def on_before_build(self, source, **_):
         attachments = getattr(source, "attachments", None)
