@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 IPYTHON_SHELL = InteractiveShell()
 _BLACKIFY = partial(format_str, mode=FileMode(line_length=79))
-_already_build = set()  # hack: prevent duplicate builds after clean
+_already_built = set()  # hack: prevent duplicate builds after clean
 
 def blackify(text):
     """Don't crash if cell contains magic that is not processed."""
@@ -52,8 +52,8 @@ class JupyterPreprocessPlugin(Plugin):
         self.env.add_build_program(Attachment, NotebookAwareAttachmentBuildProgram)
 
     def on_before_build_all(self, **_):
-        global _already_build
-        _already_build = set()
+        global _already_built
+        _already_built = set()
         
     def on_before_build(self, source, **_):
         attachments = getattr(source, "attachments", None)
@@ -70,12 +70,12 @@ class JupyterPreprocessPlugin(Plugin):
 class NotebookAwareAttachmentBuildProgram(build_programs.AttachmentBuildProgram):
     def build_artifact(self, artifact):
         path = get_notebook_file_path(artifact.source_obj)
-        if path and path not in _already_build:
+        if path and path not in _already_built:
             md = convert(path)
             dst = path.parent / "contents.lr"
             log.debug(f"{path} -> {dst}")
             dst.write_text(md)
-            _already_build.add(path)
+            _already_built.add(path)
         super().build_artifact(artifact)
 
 
