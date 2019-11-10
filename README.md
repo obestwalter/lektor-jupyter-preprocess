@@ -26,6 +26,10 @@ Have a look at the [example project](example-project) how to configure and use i
 
 The plugin is in use on my personal website - read more about how it works in the [obligatory meta article about my website](https://oliver.bestwalter.de/articles/website-meta/).
 
-## If you don't like this
+## Warning: minimal implementation
 
-There is also [lektor-jupyter](https://pypi.org/project/lektor-jupyter/), which directly renders to HTML, instead of being a preprocess step like this one.
+I am mainly using this to render simple notebooks with text output. Anything more involved would need to render directly to HTML, which is likely possible by extending this plugin. The are a few todos in the code already about this.
+
+## If this is not what you want
+
+There is also [lektor-jupyter](https://pypi.org/project/lektor-jupyter/), which does not execute the notebook itself and directly renders it to HTML, instead of being a preprocess step like this one.
