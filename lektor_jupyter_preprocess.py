@@ -20,6 +20,7 @@ IPYTHON_SHELL = InteractiveShell()
 _BLACKIFY = partial(format_str, mode=FileMode(line_length=79))
 _already_built = set()  # hack: prevent duplicate builds after clean
 
+
 def blackify(text):
     """Don't crash if cell contains magic that is not processed."""
     try:
@@ -34,7 +35,7 @@ class JupyterPreprocessPlugin(Plugin):
     description = (
         "Execute and render a Jupyter notebook. Provide the result in contents.lr."
     )
-    _JUPYTER_PREPROCESS = "JUPYTER_PREPROCESS"
+    JUPYTER_PREPROCESS = "JUPYTER_PREPROCESS"
 
     def on_setup_env(self, **_):
         """'Replace' attachment build program by an enhanced version.
@@ -45,7 +46,7 @@ class JupyterPreprocessPlugin(Plugin):
         contents.lr before it is processed, therefore preventing build loops.
         """
         config = self.get_config()
-        self.env.jinja_env.globals[self._JUPYTER_PREPROCESS] = {
+        self.env.jinja_env.globals[self.JUPYTER_PREPROCESS] = {
             "source_url": config.get("source_url"),
             "paths": set(),
         }
@@ -53,7 +54,7 @@ class JupyterPreprocessPlugin(Plugin):
 
     def on_before_build_all(self, **_):
         _already_built.clear()
-        
+
     def on_before_build(self, source, **_):
         attachments = getattr(source, "attachments", None)
         if not attachments:
@@ -61,7 +62,7 @@ class JupyterPreprocessPlugin(Plugin):
 
         attachment = attachments.get(f"{Path(source.path).name}.ipynb")
         if attachment:
-            self.env.jinja_env.globals[self._JUPYTER_PREPROCESS]["paths"].add(
+            self.env.jinja_env.globals[self.JUPYTER_PREPROCESS]["paths"].add(
                 source.path
             )
 
@@ -136,7 +137,7 @@ class ArticleExecutePreprocessor(ExecutePreprocessor):
             elif o.output_type == "stream":
                 new.append(f"```text\n[{o.name}]\n{o.text}\n```")
             else:
-                raise Exception(f"dunno what to do with: {o}")
+                raise TypeError(f"{o.output_type=} unknown - {cell.source=}")
         cell = nbformat.NotebookNode(
             {"cell_type": "raw", "metadata": {}, "source": "\n".join(new)}
         )
