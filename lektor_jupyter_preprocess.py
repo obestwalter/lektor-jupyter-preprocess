@@ -19,6 +19,17 @@ log = logging.getLogger(__name__)
 IPYTHON_SHELL = InteractiveShell()
 _BLACKIFY = partial(format_str, mode=FileMode(line_length=79))
 _already_built = set()  # hack: prevent duplicate builds after clean
+config = {
+    "url.source": (
+        "https://github.com/obestwalter/lektor-jupyter-preprocess/example-project/"
+        "tree/lektor-sources/content"
+    ),
+    "cell.source": "\n\n```{language}\n{cell.source}\n```",
+    # TODO figure out, why node.data[text/plain] is correct (no quotes around key!1?!?)
+    "node.execute_result": "```text\n[result]\n{node.data[text/plain]}\n```",
+    "node.stream": "```text\n[{node.name}]\n{node.text}\n```",
+    "node.exception": "```text\n[{node.ename}]\n{node.evalue}\n```",
+}
 
 
 def blackify(text):
@@ -45,14 +56,17 @@ class JupyterPreprocessPlugin(Plugin):
         This makes the preprocessing a part of the build of the page, overwriting
         contents.lr before it is processed, therefore preventing build loops.
         """
-        config = self.get_config()
+        global config
+        config.update(self.get_config().to_dict())
+        # revert escaped control characters from ini
+        config = {n: v.encode().decode('unicode_escape') for n, v in config.items()}
         self.env.jinja_env.globals[self.JUPYTER_PREPROCESS] = {
-            "source_url": config.get("source_url"),
+            "url_source": config["url.source"],
             "paths": set(),
         }
         self.env.add_build_program(Attachment, NotebookAwareAttachmentBuildProgram)
 
-    def on_before_build_all(self, **_):
+    def on_before_build_all(self, **_):  # noqa
         _already_built.clear()
 
     def on_before_build(self, source, **_):
@@ -123,21 +137,19 @@ class ArticleExecutePreprocessor(ExecutePreprocessor):
         if lp and lp.get("prevent-execution"):
             return cell, resources
 
-        outs = self.run_cell(cell, cell_index, store_history)[1]
+        nodes = self.run_cell(cell, cell_index, store_history)[1]
         language = self.nb.metadata.kernelspec.language
-        new = [f"\n\n```{language}\n{cell.source}\n```"]
-        # TODO make all of these configurable
-        for o in outs:
-            if o.output_type == "execute_result":
-                # TODO pass everything else through as HTML directly
-                data = o.data["text/plain"]
-                new.append(f"```text\n[result]\n{data}\n```")
-            elif o.output_type == "error":
-                new.append(f"```text\n[{o.ename}]\n{o.evalue}\n```")
-            elif o.output_type == "stream":
-                new.append(f"```text\n[{o.name}]\n{o.text}\n```")
+        new = [config["cell.source"].format(language=language, cell=cell)]
+        for node in nodes:
+            # https://nbformat.readthedocs.io/en/latest/format_description.html
+            if node.output_type == "execute_result":
+                new.append(config["node.execute_result"].format(node=node))
+            elif node.output_type == "stream":
+                new.append(config["node.stream"].format(node=node))
+            elif node.output_type == "error":
+                new.append(config["node.exception"].format(node=node))
             else:
-                raise TypeError(f"{o.output_type=} unknown - {cell.source=}")
+                raise TypeError(f"{node.output_type=} unknown - {cell.source=}")
         cell = nbformat.NotebookNode(
             {"cell_type": "raw", "metadata": {}, "source": "\n".join(new)}
         )

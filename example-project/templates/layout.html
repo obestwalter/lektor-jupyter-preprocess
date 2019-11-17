@@ -27,8 +27,8 @@
     {% if this.path in JUPYTER_PREPROCESS.paths %}
         <div>
         Page generated from a Jupyter notebook &mdash;
-        {% if JUPYTER_PREPROCESS.source_url is defined %}
-            <a href="{{ JUPYTER_PREPROCESS.source_url }}/{{ this.path }}">
+        {% if JUPYTER_PREPROCESS.url_source is defined %}
+            <a href="{{ JUPYTER_PREPROCESS.url_source }}/{{ this.path }}">
                 view sources
             </a>
         {% else %}
