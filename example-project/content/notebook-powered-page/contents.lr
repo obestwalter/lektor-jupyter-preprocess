@@ -68,8 +68,8 @@ The next cell contains this additional metadata:
 
 ```json
 {
-  "lektor-preprocess": {
-  	"prevent-execution": true
+  "JUPYTER_PREPROCESS": {
+    "metadata.execute": true
   }
 }
 ```
