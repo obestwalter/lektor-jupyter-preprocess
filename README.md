@@ -32,4 +32,5 @@ I am mainly using this to render simple notebooks with text output. Anything mor
 
 ## If this is not what you want
 
-There is also [lektor-jupyter](https://pypi.org/project/lektor-jupyter/), which does not execute the notebook itself and directly renders it to HTML, instead of being a preprocess step like this one.
+* [(plugin) lektor-jupyter](https://pypi.org/project/lektor-jupyter/) does not execute the notebook and directly renders it to HTML, instead of being a preprocess step like this one.
+* [(site) krosaen/karlrosaen-lektor](https://github.com/krosaen/karlrosaen-lektor) - also uses notebooks
