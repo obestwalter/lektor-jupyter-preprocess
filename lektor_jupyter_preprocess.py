@@ -38,7 +38,7 @@ class JupyterPreprocessPlugin(Plugin):
     JUPYTER_PREPROCESS = "JUPYTER_PREPROCESS"
 
     def on_setup_env(self, **_):
-        """'Replace' attachment build program by an enhanced version.
+        """'Replace' attachment build program with an enhanced version.
 
         `get_build_program` finds this before the inbuilt, effectively shadowing it.
 
