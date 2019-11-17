@@ -124,8 +124,8 @@ class ArticleExecutePreprocessor(ExecutePreprocessor):
             return cell, resources
 
         outs = self.run_cell(cell, cell_index, store_history)[1]
-        # TODO this could be a different language - read lang from notebook
-        new = [f"\n\n```python\n{cell.source}\n```"]
+        language = self.nb.metadata.kernelspec.language
+        new = [f"\n\n```{language}\n{cell.source}\n```"]
         # TODO make all of these configurable
         for o in outs:
             if o.output_type == "execute_result":
