@@ -150,25 +150,26 @@ class ArticleExecutePreprocessor(ExecutePreprocessor):
         if cell.cell_type != "code":
             return cell, resources
 
-        cell = pre_exec(cell)
+        cell = pre_process(cell)
         cell_config = {
             **config,
             **self.nb.metadata.get(PLUGIN_KEY, {}),
             **cell.metadata.get(PLUGIN_KEY, {}),
         }
         log.debug("final config for cell is:\n%s", config)
-        if not cell_config["metadata.execute"]:
-            cell.outputs = []
-            return cell, resources
-
-        nodes = self.run_cell(cell, *args, **kwargs)[1]
         language = self.nb.metadata.kernelspec.language
-        cell = post_exec(language, nodes, cell, cell_config)
+        if config["metadata.blackify"] and language == "python":
+            cell.source = blackify(cell.source)
+        if cell_config["metadata.execute"]:
+            nodes = self.run_cell(cell, *args, **kwargs)[1]
+        else:
+            nodes = cell.outputs
+        cell = post_process(language, cell, nodes, cell_config)
         return cell, resources
 
 
-def pre_exec(cell):
-    """Do some things before potential execution of the cell."""
+def pre_process(cell):
+    """Apply magics and update cell level config overrides."""
     cell.source = cell.source.strip()
     if not cell.source:
         return cell
@@ -194,9 +195,6 @@ def pre_exec(cell):
                     **metadata_override,
                 }
         cell.source = apply_load_magic(load_candidate)
-
-    if config["metadata.blackify"]:
-        cell.source = blackify(cell.source)
     return cell
 
 
@@ -223,10 +221,18 @@ def apply_load_magic(content):
     return code
 
 
-def post_exec(language, nodes, cell, cell_config) -> nbformat.NotebookNode:
-    """Construct what should written to the contents for this cell."""
+def post_process(language, cell, nodes, cell_config) -> nbformat.NotebookNode:
+    """Construct what should be written to the contents for this cell.
+
+    This simply creates a new raw cell containing everything - not because it's the
+    best solution but the easiest for my use case.
+
+    TODO figure out a better way that also accommodates potential HTML/interactive
+     output better Modifies cell in-place (#4).
+    """
     out = [config["cell.source"].format(language=language, cell=cell)]
     for node in nodes:
+        assert isinstance(node, nbformat.NotebookNode)
         # https://nbformat.readthedocs.io/en/latest/format_description.html
         if node.output_type == "execute_result":
             out.append(config["node.execute_result"].format(node=node))
