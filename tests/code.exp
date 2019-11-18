@@ -30,7 +30,6 @@ non_existing_name
 
 ```
 
-
 ```python
 2 * 2 * 2 * 2  # single line code with single line output
 
