@@ -16,17 +16,16 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 log = logging.getLogger(__name__)
 
-PLUGIN_KEY = "JUPYTER_PREPROCESS"
 IPYTHON_SHELL = InteractiveShell()
 _BLACKIFY = partial(format_str, mode=FileMode(line_length=79))
 _already_built = set()  # hack: prevent duplicate builds after clean
+
+PLUGIN_KEY = "JUPYTER_PREPROCESS"
 config = {
-    "url.source": (
-        "https://github.com/obestwalter/lektor-jupyter-preprocess/example-project/"
-        "tree/lektor-sources/content"
-    ),
+    "url.source": None,
     "metadata.blackify": True,
     "metadata.execute": True,
+    # todo figure out how jupyter does these things and play together with it
     "metadata.allow_errors": False,
     "metadata.full_traceback": True,
     "cell.source": "\n\n```{language}\n{cell.source}\n```",
@@ -35,6 +34,19 @@ config = {
     "node.stream": "```text\n[{node.name}]\n{node.text}\n```",
     "node.exception": "```text\n[{node.ename}]\n{node.evalue}\n```",
 }
+f"""configuration of the plugin.
+
+This dict should define all existing keys and provide sane defaults (sane for me).
+
+It can be overridden in these ways (sorted by order of precedence - last one wins):
+
+* config values from configs/jupyter-preprocess.ini
+* dict at {PLUGIN_KEY} in notebook metadata
+* dict at {PLUGIN_KEY} in cell metadata
+* dict literal on second line in a cell using the %load magic
+
+See example-project/jupyter-preprocess.ini and tests/code.ipynb for examples
+"""
 
 
 class JupyterPreprocessPlugin(Plugin):
@@ -96,7 +108,7 @@ def fix_inifile_data(obj):
     # inifile escapes control characters - I need them like they where
     obj = obj.encode().decode("unicode_escape")
     # coerce usual suspects to bool
-    if obj in ["True", "true", "Yes", "yes", "1", "HELL YEAH!"]:
+    if obj in ["True", "true", "Yes", "yes", "1", "YES, PLEASE!"]:
         obj = True
     if obj in ["False", "false", "No", "no", "0", "Are you joking?"]:
         obj = False
@@ -144,7 +156,9 @@ class ArticleExecutePreprocessor(ExecutePreprocessor):
             **self.nb.metadata.get(PLUGIN_KEY, {}),
             **cell.metadata.get(PLUGIN_KEY, {}),
         }
+        log.debug("final config for cell is:\n%s", config)
         if not cell_config["metadata.execute"]:
+            cell.outputs = []
             return cell, resources
 
         nodes = self.run_cell(cell, *args, **kwargs)[1]
@@ -154,12 +168,33 @@ class ArticleExecutePreprocessor(ExecutePreprocessor):
 
 
 def pre_exec(cell):
-    first_line = cell.source.strip().splitlines()[0]
-    load_candidate = first_line.replace("# ", "")
+    """Do some things before potential execution of the cell."""
+    cell.source = cell.source.strip()
+    if not cell.source:
+        return cell
+
+    assert isinstance(cell.source, str), f"bad source type: {type(cell.source)}"
+    lines = cell.source.strip().splitlines()
+    load_candidate = lines[0].replace("# ", "")
     # TODO apply other magics (e.g. %%capture)?
     #  also: is there a more "official" way?
     if load_candidate.startswith("%load"):
+        try:
+            metadata_override = lines[1]
+        except IndexError:
+            metadata_override = None
+        if metadata_override:
+            try:
+                metadata_override = eval(metadata_override)
+            except Exception:
+                log.exception(f"[IGNORE] eval of '{metadata_override}' failed")
+            if isinstance(metadata_override, dict):
+                cell.metadata[PLUGIN_KEY] = {
+                    **cell.metadata.get(PLUGIN_KEY, {}),
+                    **metadata_override,
+                }
         cell.source = apply_load_magic(load_candidate)
+
     if config["metadata.blackify"]:
         cell.source = blackify(cell.source)
     return cell
@@ -188,7 +223,8 @@ def apply_load_magic(content):
     return code
 
 
-def post_exec(language, nodes, cell, cell_config):
+def post_exec(language, nodes, cell, cell_config) -> nbformat.NotebookNode:
+    """Construct what should written to the contents for this cell."""
     out = [config["cell.source"].format(language=language, cell=cell)]
     for node in nodes:
         # https://nbformat.readthedocs.io/en/latest/format_description.html

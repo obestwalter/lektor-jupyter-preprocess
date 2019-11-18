@@ -5,7 +5,12 @@ cdate: 2019-11-9
 content:
 
 ```python
-# %load a-module.py
+# use the load magic
+
+```
+
+```python
+# %load module-a.py
 import sys
 
 
@@ -13,6 +18,18 @@ def foo():
     print(sys)
 
 ```
+
+```python
+# use override metadata directly in load magic to not execute the cell
+
+```
+
+```python
+# %load module-b.py
+non_existing_name
+
+```
+
 
 ```python
 2 * 2 * 2 * 2  # single line code with single line output

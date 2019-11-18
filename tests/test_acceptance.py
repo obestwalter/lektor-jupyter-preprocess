@@ -29,6 +29,11 @@ def test_convert_to_markdown(initialized_project):
         outPath.unlink()
     output = convert(inPath)
     outPath.write_text(output)
-    expectation = expectationPath.read_text()
-    assert expectation.strip() == output.strip()
+
+    expectation = expectationPath.read_text().strip()
+    assert isinstance(expectation, str)
+    assert isinstance(output, str)
+    # todo pycharm: str diff broken => extend/file bug report
+    # click to see difference still somehow helps, but really broken obj rep
+    assert expectation == output
     outPath.unlink()
