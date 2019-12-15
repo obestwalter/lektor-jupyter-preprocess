@@ -26,14 +26,10 @@
     {#  accessing information for lektor-jupyter-preprocess plugin #}
     {% if this.path in JUPYTER_PREPROCESS.paths %}
         <div>
-        Page generated from a Jupyter notebook &mdash;
+        Page generated from a Jupyter notebook
         {% if JUPYTER_PREPROCESS.url_source is defined %}
             <a href="{{ JUPYTER_PREPROCESS.url_source }}/{{ this.path }}">
-                view sources
-            </a>
-        {% else %}
-            <a href="{{ this.path }}">
-                download notebook
+                &mdash; view sources
             </a>
         {% endif %}
         </div>
