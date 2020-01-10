@@ -147,7 +147,7 @@ class ArticleExecutePreprocessor(ExecutePreprocessor):
     """Apply load magic and massage the markdown output."""
 
     def preprocess_cell(self, cell, resources, *args, **kwargs):
-        if cell.cell_type != "code":
+        if cell.cell_type != "code" or not cell.source.strip():
             return cell, resources
 
         cell = pre_process(cell)
